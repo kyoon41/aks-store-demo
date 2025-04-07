@@ -1,0 +1,29 @@
+name: Deploy Selfhost App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up kubectl
+      run: |
+        az aks get-credentials --resource-group paks --name aks-cluster-private --only-show-errors
+
+    - name: Deploy Selfhost App
+      run: |
+        kubectl apply -f k8s/selfhost.yaml
+
+    - name: Wait for rollout
+      run: |
+        kubectl rollout status deployment/selfhost --timeout=120s
+        kubectl get ingress -A
+
